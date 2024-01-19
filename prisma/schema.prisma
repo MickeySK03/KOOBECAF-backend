@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum role {
+  USER
+  ADMIN
+}
+
+enum homeProperty {
+  RENT
+  SALE
+}
+
+enum homeType {
+  FLAT
+  HOUSE
+  TOWNHOME
+}
+
+enum vehicleType {
+  CAR
+  TRUCK
+  MOTORCYCLE
+  POWERSPORT
+  RV
+  CAMPER
+  TRAILER
+  BOAT
+  COMMERCIAL
+  INDUSTRIAL
+}
+
+enum status {
+  AVAILABLE
+  SOLD
+  NOT_AVAILABLE
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  password       String
+  email          String?    @unique
+  firstName      String
+  lastName       String
+  profileImage   String?
+  coverImage     String?
+  isSubscribe    Boolean    @default(false)
+  startSubscribe DateTime?
+  endSubscribe   DateTime?
+  role           role       @default(USER)
+  mobile         String?    @unique @db.VarChar(10)
+  Product        Product[]
+  wishlist       wishlist[]
+  requesters     chat[]     @relation("requester")
+  receivers      chat[]     @relation("receiver")
+}
+
+model Product {
+  id               Int           @id @default(autoincrement())
+  productName      String
+  productPrice     String
+  description      String?
+  latitude         Float
+  longitude        Float
+  vehicleType      vehicleType?
+  vehicleBrand     String?
+  vehicleModel     String?
+  vehicleYears     Int?
+  homeProperty     homeProperty?
+  homeType         homeType?
+  bedroomQuantity  Int?
+  bathroomQuantity Int?
+  homeAddress      String?
+  createdAt        DateTime      @default(now())
+  status           status        @default(AVAILABLE)
+  sellDate         DateTime?
+  point            Int           @default(0)
+  userId           Int
+  usersId          User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categoryId       Int
+  categorysId      category      @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  wishlist         wishlist[]
+  image            image[]
+  chat             chat[]
+}
+
+model category {
+  id             Int       @id @default(autoincrement())
+  typeOfCategory String
+  Product        Product[]
+}
+
+model wishlist {
+  id         Int     @id @default(autoincrement())
+  productId  Int
+  productsId Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId     Int
+  usersId    User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model image {
+  id         Int     @id @default(autoincrement())
+  image      String
+  productId  Int
+  productsId Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model chat {
+  id          Int      @id @default(autoincrement())
+  message     String
+  date        DateTime @default(now())
+  productId   Int
+  productsId  Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  requesterId Int
+  requester   User     @relation("requester", fields: [requesterId], references: [id])
+  receiverId  Int
+  receiver    User     @relation("receiver", fields: [receiverId], references: [id])
+}
